@@ -2,12 +2,14 @@ const EventEmitter = require('events');
 class Server extends EventEmitter {
 	constructor(client) {
 		super();
+		this.tasks = {};
+		this.taskId = 1;
 		process.nextTick(() => {
 			// To make sure the client is ready
 			this.emit('response', 'Welcome to the server!');
 			this.emit('response', 'Type help to see available commands.');
 		});
-		client.on('command', (command, ...args) => {
+		client.on('command', (command, ...tasks) => {
 			console.log(`Command: ${command} `);
 			// help, add, ls, delete
 			switch (command) {
@@ -15,7 +17,7 @@ class Server extends EventEmitter {
 					this.help();
 					break;
 				case 'add':
-					this.add(args);
+					this.add(tasks);
 					break;
 				case 'ls':
 					this.ls();
@@ -28,6 +30,20 @@ class Server extends EventEmitter {
 			}
 		});
 	}
+	tasksString() {
+		// let tasksString = '';
+		// for (let task in this.tasks) {
+		//   tasksString += `${task}: ${this.tasks[task]}\n`;
+		// }
+		// return tasksString;
+
+		return Object.keys(this.tasks)
+			.map((key) => {
+				return `${key}: ${this.tasks[key]}`;
+			})
+			.join('\n');
+	}
+
 	help() {
 		this.emit(
 			'response',
@@ -38,14 +54,17 @@ class Server extends EventEmitter {
       4- delete task`,
 		);
 	}
-	add(args) {
-		this.emit('response', args.join(' '));
+	add(tasks) {
+		this.tasks[this.taskId] = tasks.join(' ');
+		this.emit('response', `Added task ${this.taskId}: ${tasks.join(' ')}`);
+		this.taskId++;
 	}
 	ls() {
-		this.emit('response', 'ls...');
+		this.emit('response', `Tasks:\n${this.tasksString()}`);
 	}
-	delete() {
-		this.emit('response', 'delete...');
+	delete(tasks) {
+		delete this.tasks[tasks];
+		this.emit('response', `Deleted task ${tasks[0]}`);
 	}
 }
 module.exports = (client) => new Server(client);
