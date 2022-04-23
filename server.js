@@ -3,10 +3,11 @@ class Server extends EventEmitter {
 	constructor(client) {
 		super();
 		process.nextTick(() => {
+			// To make sure the client is ready
 			this.emit('response', 'Welcome to the server!');
 			this.emit('response', 'Type help to see available commands.');
 		});
-		client.on('command', (command) => {
+		client.on('command', (command, ...args) => {
 			console.log(`Command: ${command} `);
 			// help, add, ls, delete
 			switch (command) {
@@ -14,7 +15,7 @@ class Server extends EventEmitter {
 					this.help();
 					break;
 				case 'add':
-					this.add();
+					this.add(args);
 					break;
 				case 'ls':
 					this.ls();
@@ -32,13 +33,13 @@ class Server extends EventEmitter {
 			'response',
 			`Available commands: 
       1- help,
-      2- add,
+      2- add task,
       3- ls,
-      4- delete`,
+      4- delete task`,
 		);
 	}
-	add() {
-		this.emit('response', 'add...');
+	add(args) {
+		this.emit('response', args.join(' '));
 	}
 	ls() {
 		this.emit('response', 'ls...');
